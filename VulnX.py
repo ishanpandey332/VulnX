@@ -5,9 +5,10 @@
 #                             / ( (//)/(/__)( (//)
 #                                  /
 #
-# Author     : Shankar Narayana Damodaran
-# Tool       : RapidScan v1.2
-# Usage      : python3 rapidsan.py example.com
+# Author      : Ishan Pandey
+# Based on    : RapidScan (Open Source)
+# Tool        : VulnX v1.0
+# Usage       : python vulnx.py example.com
 # Description: This scanner automates the process of security scanning by using a
 #              multitude of available linux security tools and some custom scripts.
 #
@@ -22,6 +23,8 @@ import random
 import threading
 import re
 import random
+import shutil
+import json
 from urllib.parse import urlsplit
 
 
@@ -47,10 +50,9 @@ def display_time(seconds, granularity=3):
 
 def terminal_size():
     try:
-        rows, columns = subprocess.check_output(['stty', 'size']).split()
-        return int(columns)
-    except subprocess.CalledProcessError as e:
-        return int(20)
+        return shutil.get_terminal_size().columns
+    except:
+        return 80
     
 
 
@@ -127,19 +129,19 @@ def vul_remed_info(v1,v2,v3):
     print("\t"+bcolors.OKGREEN+str(tools_fix[v3-1][2])+bcolors.ENDC)
 
 
-# RapidScan Help Context
+# VulnX Help Context
 def helper():
         print(bcolors.OKBLUE+"Information:"+bcolors.ENDC)
         print("------------")
-        print("\t./rapidscan.py example.com: Scans the domain example.com.")
-        print("\t./rapidscan.py example.com --skip dmitry --skip theHarvester: Skip the 'dmitry' and 'theHarvester' tests.")
-        print("\t./rapidscan.py example.com --nospinner: Disable the idle loader/spinner.")
-        print("\t./rapidscan.py --update   : Updates the scanner to the latest version.")
-        print("\t./rapidscan.py --help     : Displays this help context.")
+        print("\t./VulnX.py example.com: Scans the domain example.com.")
+        print("\t./VulnX.py example.com --skip dmitry --skip theHarvester: Skip the 'dmitry' and 'theHarvester' tests.")
+        print("\t./VulnX.py example.com --nospinner: Disable the idle loader/spinner.")
+        print("\t./VulnX.py --update   : Updates the scanner to the latest version.")
+        print("\t./VulnX.py --help     : Displays this help context.")
         print(bcolors.OKBLUE+"Interactive:"+bcolors.ENDC)
         print("------------")
         print("\tCtrl+C: Skips current test.")
-        print("\tCtrl+Z: Quits RapidScan.")
+        print("\tCtrl+Z: Quits VulnX.")
         print(bcolors.OKBLUE+"Legends:"+bcolors.ENDC)
         print("--------")
         print("\t["+proc_high+"]: Scan process may take longer times (not predictable).")
@@ -159,18 +161,26 @@ def clear():
         sys.stdout.write("\033[F")
         sys.stdout.write("\033[K") #clears until EOL
 
-# RapidScan Logo
+# VulnX Logo
 def logo():
     print(bcolors.WARNING)
-    logo_ascii = """
-                                  __         __
-                                 /__)_  """+bcolors.BADFAIL+" ●"+bcolors.WARNING+"""_/(  _ _
-                                / ( (//)/(/__)( (//)
-                                     /
-                     """+bcolors.ENDC+"""(The Multi-Tool Web Vulnerability Scanner)
+    logo_ascii = f"""
+{bcolors.OKBLUE}
 
-                     Check out our new software, """+bcolors.BG_LOW_TXT+"""NetBot"""+bcolors.ENDC+""" for simulating DDoS attacks - https://github.com/skavngr/netbot
-    """
+██╗   ██╗         ██╗          ██╗  ██╗
+██║   ██║██║   ██║██║████╗  ██║╚██╗██╔╝
+██║   ██║██║   ██║██║██╔██╗ ██║ ╚███╔╝
+╚██╗ ██╔╝██║   ██║██║██║╚██╗██║ ██╔██╗
+ ╚████╔╝ ╚██████╔╝██║██║ ╚████║██╔╝ ██╗
+  ╚═══╝   ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝
+
+{bcolors.OKGREEN}
+        Advanced Web Vulnerability Scanner
+{bcolors.WARNING}
+              Version 1.1
+
+{bcolors.ENDC}
+"""
     print(logo_ascii)
     print(bcolors.ENDC)
 
@@ -210,7 +220,7 @@ class Spinner:
                     sys.stdout.flush()
 
         except (KeyboardInterrupt, SystemExit):
-            print("\n\t"+ bcolors.BG_ERR_TXT+"RapidScan received a series of Ctrl+C hits. Quitting..." +bcolors.ENDC)
+            print("\n\t"+ bcolors.BG_ERR_TXT+"VulnX received a series of Ctrl+C hits. Quitting..." +bcolors.ENDC)
             sys.exit(1)
 
     def start(self):
@@ -225,7 +235,7 @@ class Spinner:
             self.busy = False
             time.sleep(self.delay)
         except (KeyboardInterrupt, SystemExit):
-            print("\n\t"+ bcolors.BG_ERR_TXT+"RapidScan received a series of Ctrl+C hits. Quitting..." +bcolors.ENDC)
+            print("\n\t"+ bcolors.BG_ERR_TXT+"VulnX received a series of Ctrl+C hits. Quitting..." +bcolors.ENDC)
             sys.exit(1)
 
 # End ofloader/spinner class
@@ -1348,7 +1358,7 @@ def get_parser():
     parser.add_argument('-h', '--help', action='store_true', 
                         help='Show help message and exit.')
     parser.add_argument('-u', '--update', action='store_true', 
-                        help='Update RapidScan.')
+                        help='Update VulnX.')
     parser.add_argument('-s', '--skip', action='append', default=[],
                         help='Skip some tools', choices=[t[0] for t in tools_precheck])
     parser.add_argument('-n', '--nospinner', action='store_true', 
@@ -1409,7 +1419,7 @@ if args_namespace.help or (not args_namespace.update \
     helper()
 elif args_namespace.update:
     logo()
-    print("RapidScan is updating....Please wait.\n")
+    print("VulnX is updating....Please wait.\n")
     spinner.start()
     # Checking internet connectivity first...
     rs_internet_availability = check_internet()
@@ -1417,7 +1427,7 @@ elif args_namespace.update:
         print("\t"+ bcolors.BG_ERR_TXT + "There seems to be some problem connecting to the internet. Please try again or later." +bcolors.ENDC)
         spinner.stop()
         sys.exit(1)
-    cmd = 'sha1sum rapidscan.py | grep .... | cut -c 1-40'
+    cmd = 'sha1sum VulnX.py | grep .... | cut -c 1-40'
     oldversion_hash = subprocess.check_output(cmd, shell=True)
     oldversion_hash = oldversion_hash.strip()
     os.system('wget -N https://raw.githubusercontent.com/skavngr/rapidscan/master/rapidscan.py -O rapidscan.py > /dev/null 2>&1')
@@ -1425,10 +1435,10 @@ elif args_namespace.update:
     newversion_hash = newversion_hash.strip()
     if oldversion_hash == newversion_hash :
         clear()
-        print("\t"+ bcolors.OKBLUE +"You already have the latest version of RapidScan." + bcolors.ENDC)
+        print("\t"+ bcolors.OKBLUE +"You already have the latest version of VulnX." + bcolors.ENDC)
     else:
         clear()
-        print("\t"+ bcolors.OKGREEN +"RapidScan successfully updated to the latest version." +bcolors.ENDC)
+        print("\t"+ bcolors.OKGREEN +"VulnX successfully updated to the latest version." +bcolors.ENDC)
     spinner.stop()
     sys.exit(1)
 
@@ -1436,7 +1446,7 @@ elif args_namespace.target:
 
     target = url_maker(args_namespace.target)
     #target = args_namespace.target
-    os.system('rm /tmp/rapidscan* > /dev/null 2>&1') # Clearing previous scan files
+    os.system('rm /tmp/VulnX* > /dev/null 2>&1') # Clearing previous scan files
     os.system('clear')
     os.system('setterm -cursor off')
     logo()
@@ -1447,11 +1457,17 @@ elif args_namespace.target:
     while (rs_avail_tools < len(tools_precheck)):
         precmd = str(tools_precheck[rs_avail_tools][arg1])
         try:
-            p = subprocess.Popen([precmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
+            p = subprocess.Popen(
+    precmd,
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    shell=True
+)
             output, err = p.communicate()
             val = output + err
         except:
-            print("\t"+bcolors.BG_ERR_TXT+"RapidScan was terminated abruptly..."+bcolors.ENDC)
+            print("\t"+bcolors.BG_ERR_TXT+"VulnX was terminated abruptly..."+bcolors.ENDC)
             sys.exit(1)
         
         # If the tool is not found or it's part of the --skip argument(s), disabling it
@@ -1472,9 +1488,9 @@ elif args_namespace.target:
         clear()
     unavail_tools_names = list(set(unavail_tools_names))
     if len(unavail_tools_names) == 0:
-        print("\t"+bcolors.OKGREEN+"All Scanning Tools are available. Complete vulnerability checks will be performed by RapidScan."+bcolors.ENDC)
+        print("\t"+bcolors.OKGREEN+"All Scanning Tools are available. VulnX Security Engine initialized successfully."+bcolors.ENDC)
     else:
-        print("\t"+bcolors.WARNING+"Some of these tools "+bcolors.BADFAIL+str(unavail_tools_names)+bcolors.ENDC+bcolors.WARNING+" are unavailable or will be skipped. RapidScan will still perform the rest of the tests. Install these tools to fully utilize the functionality of RapidScan."+bcolors.ENDC)
+        print("\t"+bcolors.WARNING+"Some of these tools "+bcolors.BADFAIL+str(unavail_tools_names)+bcolors.ENDC+bcolors.WARNING+" are unavailable or will be skipped. VulnX will still perform the rest of the tests. Install these tools to fully utilize the functionality of VulnX."+bcolors.ENDC)
     print(bcolors.BG_ENDL_TXT+"[ Checking Available Security Scanning Tools Phase... Completed. ]"+bcolors.ENDC)
     print("\n")
     print(bcolors.BG_HEAD_TXT+"[ Preliminary Scan Phase Initiated... Loaded "+str(tool_checks)+" vulnerability checks. ]"+bcolors.ENDC)
@@ -1534,7 +1550,7 @@ elif args_namespace.target:
                 sys.stdout.write(ERASE_LINE)
                 #print("-" * terminal_size(), end='\r', flush=True)
                 print(bcolors.OKBLUE+"\nScan Interrupted in "+display_time(int(elapsed))+bcolors.ENDC, end='\r', flush=True)
-                print("\n"+bcolors.WARNING + "\tTest Skipped. Performing Next. Press Ctrl+Z to Quit RapidScan.\n" + bcolors.ENDC)
+                print("\n"+bcolors.WARNING + "\tTest Skipped. Performing Next. Press Ctrl+Z to Quit VulnX.\n" + bcolors.ENDC)
                 rs_skipped_checks = rs_skipped_checks + 1
 
         tool=tool+1
@@ -1543,9 +1559,11 @@ elif args_namespace.target:
     print("\n")
 
     #################### Report & Documentation Phase ###########################
-    date = subprocess.Popen(["date", "+%Y-%m-%d"],stdout=subprocess.PIPE).stdout.read()[:-1].decode("utf-8")
-    debuglog = "rs.dbg.%s.%s" % (target, date) 
-    vulreport = "rs.vul.%s.%s" % (target, date)
+    from datetime import datetime
+
+    date = datetime.now().strftime("%Y-%m-%d")
+    debuglog = "vulnx-debug-%s-%s.txt" % (target, date)
+    vulreport = "vulnx-report-%s-%s.txt" % (target, date)
     print(bcolors.BG_HEAD_TXT+"[ Report Generation Phase Initiated. ]"+bcolors.ENDC)
     if len(rs_vul_list)==0:
         print("\t"+bcolors.OKGREEN+"No Vulnerabilities Detected."+bcolors.ENDC)
@@ -1563,7 +1581,8 @@ elif args_namespace.target:
                 temp_report.close()
                 rs_vul = rs_vul + 1
 
-            print("\tComplete Vulnerability Report for "+bcolors.OKBLUE+target+bcolors.ENDC+" named "+bcolors.OKGREEN+vulreport+bcolors.ENDC+" is available under the same directory RapidScan resides.")
+        print("\tVulnX Security Report generated successfully.")
+        print("\tSaved at: " + os.path.abspath(vulreport))
 
         report.close()
     # Writing all scan files output into RS-Debug-ScanLog for debugging purposes.
@@ -1586,8 +1605,134 @@ elif args_namespace.target:
     print("\tTotal Number of Vulnerabilities Detected    : "+bcolors.BOLD+bcolors.BADFAIL+str(len(rs_vul_list))+bcolors.ENDC)
     print("\tTotal Time Elapsed for the Scan             : "+bcolors.BOLD+bcolors.OKBLUE+display_time(int(rs_total_elapsed))+bcolors.ENDC)
     print("\n")
-    print("\tFor Debugging Purposes, You can view the complete output generated by all the tools named "+bcolors.OKBLUE+debuglog+bcolors.ENDC+" under the same directory.")
-    print(bcolors.BG_ENDL_TXT+"[ Report Generation Phase Completed. ]"+bcolors.ENDC)
+    print("\tVulnX Debug Log saved as: " + bcolors.OKBLUE + debuglog + bcolors.ENDC)
+    print("\tVulnX Security Report saved as: " + bcolors.OKGREEN + vulreport + bcolors.ENDC)
+    print(bcolors.BG_ENDL_TXT+"[ VulnX Report Generation Completed Successfully ]"+bcolors.ENDC)
 
-    os.system('setterm -cursor on')
-    os.system('rm /tmp/rapidscan_te* > /dev/null 2>&1') # Clearing previous scan files
+    # ==========================
+# VulnX Security Score
+# ==========================
+
+total = len(rs_vul_list)
+
+if total <= 10:
+    score = 95
+elif total <= 20:
+    score = 85
+elif total <= 30:
+    score = 72
+elif total <= 40:
+    score = 60
+else:
+    score = 45
+
+if score >= 90:
+    rating = "EXCELLENT"
+elif score >= 75:
+    rating = "GOOD"
+elif score >= 60:
+    rating = "MEDIUM"
+else:
+    rating = "HIGH RISK"
+
+print("\n")
+print("=" * 45)
+print("           VULNX SECURITY SUMMARY")
+print("=" * 45)
+print(f"Target              : {target}")
+print(f"Security Score      : {score}/100")
+print(f"Risk Level          : {rating}")
+print("=" * 45)
+
+
+
+
+print("\n")
+print("="*45)
+print("SCAN INFORMATION")
+print("="*45)
+print("Scanner        : VulnX v1.1")
+print("Python         :", sys.version.split()[0])
+print("Platform       :", sys.platform)
+print("Target         :", target)
+print("Modules        :", len(tool_names))
+print("Duration       :", display_time(int(rs_total_elapsed)))
+print("="*45)
+
+
+
+print("\n")
+print("="*45)
+print("EXECUTIVE RECOMMENDATIONS")
+print("="*45)
+
+if score >= 90:
+    print("✔ Excellent security posture.")
+elif score >= 75:
+    print("✔ Minor hardening recommended.")
+elif score >= 60:
+    print("⚠ Medium Risk - Patch exposed services.")
+else:
+    print("❌ High Risk - Immediate remediation required.")
+
+print("\nPriority Actions:")
+
+recommendations = [
+    "Patch outdated services.",
+    "Review HTTP Security Headers.",
+    "Disable unused services.",
+    "Review exposed ports.",
+    "Perform periodic vulnerability assessments."
+]
+
+for i, r in enumerate(recommendations, 1):
+    print(f"{i}. {r}")
+
+print("="*45)
+
+
+
+
+json_report = {
+    "scanner": "VulnX v1.1",
+    "target": target,
+    "security_score": score,
+    "risk_level": rating,
+    "checks_performed": len(tool_names),
+    "checks_skipped": rs_skipped_checks,
+    "vulnerabilities": len(rs_vul_list),
+    "scan_time": display_time(int(rs_total_elapsed))
+}
+
+json_filename = f"vulnx-report-{target}.json"
+
+with open(json_filename, "w") as jf:
+    json.dump(json_report, jf, indent=4)
+
+print(f"\nJSON Report : {json_filename}")
+
+# if score < 60:
+#     print("🔴 Immediate security remediation is recommended.")
+# elif score < 80:
+#     print("🟡 Moderate security improvements are recommended.")
+# else:
+#     print("🟢 The target appears reasonably secure.")
+
+# print("\nPriority Actions:")
+
+# recommendations = [
+#     "Update outdated software and web server.",
+#     "Review HTTP security headers.",
+#     "Disable unnecessary services and ports.",
+#     "Patch all high-severity vulnerabilities.",
+#     "Perform regular vulnerability assessments."
+# ]
+
+# for i, rec in enumerate(recommendations, 1):
+#     print(f"{i}. {rec}")
+
+# print("=" * 45)
+
+
+   # os.system('setterm -cursor on')
+   # os.system('rm /tmp/rapidscan_te* > /dev/null 2>&1') # Clearing previous scan files

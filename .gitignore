@@ -1,0 +1,46 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# VS Code
+.vscode/
+
+# Python environment
+.python-version
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Generated VulnX reports
+vulnx-report-*.txt
+vulnx-report-*.json
+vulnx-debug-*.txt
+
+# Old RapidScan reports (if any)
+rs.dbg.*
+rs.vul.*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+
+# Distribution
+build/
+dist/
+*.egg-info/
